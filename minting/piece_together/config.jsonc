@@ -3,11 +3,11 @@
 	// Doesn't have to exist, must be a realpath / exact path
 	"outputDirectory": "/run/media/sheepy/Storage/Code/Web3/SheepMinting/minting/sheep_images/output-test",
 	// Should the output images be zipped?
-	"shouldZipOutput": false,
+	"shouldZipOutput": true,
 	// Should each image have JSON data with it?
 	"shouldJsonOutput": true,
 	// The number of NFTs to mint
-	"numberNftsToMint": 100000,
+	"numberNftsToMint": 1000,
 
 	// Colors for sections (hex)
 	"colors": {
