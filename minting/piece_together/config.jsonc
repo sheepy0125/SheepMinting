@@ -1,13 +1,13 @@
 // Sheepy NFT Minting: Configuration
 {
 	// Doesn't have to exist, must be a realpath / exact path
-	"outputDirectory": "/run/media/sheepy/Storage/Code/Web3/SheepMinting/minting/sheep_images/output",
+	"outputDirectory": "/run/media/sheepy/Storage/Code/Web3/SheepMinting/minting/sheep_images/output-test",
 	// Should the output images be zipped?
 	"shouldZipOutput": false,
 	// Should each image have JSON data with it?
 	"shouldJsonOutput": true,
 	// The number of NFTs to mint
-	"numberNftsToMint": 100,
+	"numberNftsToMint": 100000,
 
 	// Colors for sections (hex)
 	"colors": {
@@ -16,27 +16,54 @@
 		// Wool colors will be the same random color pallette, no matter where they are
 		// https://html-color-codes.com/
 		"wool": [
-			"FCFCFC",
-			"CCCCCC",
-			"999999",
-			"666666",
-			"333333",
-			"000000",
-			"FFCCCC",
 			"FF9999",
-			"FF6666",
-			"FF3333",
-			"FF0000",
-			"CC9999",
-			"CC6666",
-			"CC3333",
-			"CC0000",
-			"996666",
+			"3333FF",
+			"330066",
 			"993333",
+			"CCCCFF",
+			"9999FF",
+			"CC6633",
+			"9966FF",
+			"CC0000",
+			"3366FF",
+			"CC99FF",
+			"CC9999",
+			"666666",
+			"0033FF",
+			"996666",
+			"6699FF",
+			"FFCCCC",
+			"FF6633",
+			"CC3300",
+			"FF9966",
+			"FCFCFC",
+			"330033",
+			"CC9966",
+			"3300FF",
+			"333333",
+			"999999",
+			"FF3300",
+			"330000",
+			"99CCFF",
+			"333399",
+			"CC3333",
+			"FFCC99",
+			"0000FF",
+			"6666FF",
 			"990000",
+			"CCCCCC",
+			"000000",
+			"CC6666",
+			"FF0000",
 			"663333",
 			"660000",
-			"330000"
-		]
+			"993300",
+			"FF3333",
+			"FF6666"
+		],
+
+		// Background colors
+		// These should be light colors, so that the image is viewable
+		"background": ["FFFFFF", "CCCCCC", "999999", "FF33FF", "33FF00", "00FFFF", "FF00FF", "FF6600", "00FF00"]
 	}
 }

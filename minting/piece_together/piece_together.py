@@ -5,21 +5,25 @@ Used for piecing together images
 
 # Imports
 import logging
-from random import randint, choice
 import numpy as np
+import sys
+from random import randint, choice
 from pathlib import Path
-from shutil import rmtree
+from shutil import rmtree, make_archive
 from jsonc_parser.parser import JsoncParser
 from jsonc_parser.errors import FileError, ParserError
 from PIL import Image, ImageColor
 from tqdm import tqdm
-from json import dump
+from json import dump, load
+from time import time, strftime, gmtime
+from os import devnull
 
 # Constants
 ROOT_PATH = Path(__file__).parent.parent  # Will be in `minting`
 PIECE_TOGETHER_PATH = Path(__file__).parent  # Will be in `piece_together`
 IMAGES_PATH = ROOT_PATH / "sheep_images"
 # Config
+DEBUG = False
 CONFIG_NAME = "config.jsonc"
 CONFIG_PATH = PIECE_TOGETHER_PATH / CONFIG_NAME
 OUTPUT_PATH: Path
@@ -47,7 +51,7 @@ Image.init()  # PIL logger
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s:%(scope)s:%(message)s",
-    level=logging.DEBUG,
+    level=logging.DEBUG if DEBUG else logging.INFO,
     datefmt="%m/%d/%Y %I:%M:%S %p",
 )
 # We have two loggers, the PIL logger and the regular logger
@@ -110,6 +114,7 @@ with open(CONFIG_PATH) as config_file:
             OUTPUT_PATH = Path(config["outputDirectory"])
             MAX_NUMBER_NFTS = int(config["numberNftsToMint"])
             SHOULD_JSON_OUTPUT = config["shouldJsonOutput"]
+            SHOULD_ZIP_OUTPUT = config["shouldZipOutput"]
             COLORS = config["colors"]
         except (KeyError, TypeError):
             logger.error("Config file is missing required keys!")
@@ -124,15 +129,13 @@ with open(CONFIG_PATH) as config_file:
 
         # Detect if there are any images in the output folder
         if OUTPUT_PATH.exists() and OUTPUT_PATH.is_dir():
-            print("got here")
-            print(next(OUTPUT_PATH.glob("*")))
             if next(OUTPUT_PATH.glob("*"), None) is not None:
                 logger.warning(
                     f"Output folder is not empty! This will overwrite existing files!"
                 )
                 if input('Press enter to continue, or type "exit" to exit...') != "":
                     cannot_continue()
-                rmtree(str(OUTPUT_PATH))
+            rmtree(str(OUTPUT_PATH))
             logger.debug("Output folder is empty")
 
         try:
@@ -150,15 +153,26 @@ with open(CONFIG_PATH) as config_file:
                 color_section not in COLORS
                 or any((not isinstance(color, str)) for color in COLORS[color_section])
             )
-            for color_section in ("head_area", "wool")
+            for color_section in ("head_area", "wool", "background")
         ):
-            logger.error("Colors are invalid!")
+            logger.error(
+                "Colors are invalid! They must be a list of hex values (without #) "
+                "for head_area, wool, and background"
+            )
             cannot_continue()
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         cannot_continue()
 
     logger.info("Parsed config file")
+
+    # ConfirmCOLORS[
+    logger.info(f"{OUTPUT_PATH=}")
+    logger.info(f"{MAX_NUMBER_NFTS=}")
+    logger.info(f"{SHOULD_JSON_OUTPUT=}")
+    logger.info(f"{COLORS=}")
+    if input('Press enter to continue, or type "exit" to exit...') != "":
+        cannot_continue()
 
 # Gather images
 scope = "GATHER_IMAGES"
@@ -235,6 +249,7 @@ done_configurations = [
 ]
 done_configurations.clear()
 
+start_time = time()
 for nfts_done in tqdm(range(MAX_NUMBER_NFTS)):
     # Randomize an image configuration
     image_configuration = {}
@@ -246,6 +261,7 @@ for nfts_done in tqdm(range(MAX_NUMBER_NFTS)):
         "face": randint(0, len(COLORS["head_area"]) - 1),
         "primary_wool": randint(0, len(COLORS["wool"]) - 1),
         "secondary_wool": randint(0, len(COLORS["wool"]) - 1),
+        "background": randint(0, len(COLORS["background"]) - 1),
     }
     # Has this image configuration already been done?
     if image_configuration in done_configurations:
@@ -300,8 +316,20 @@ for nfts_done in tqdm(range(MAX_NUMBER_NFTS)):
         # Paste
         image.paste(head_face, (5, 24), mask=head_face)  # Mask here uses alpha channel
 
+    # Background color
+    image = global_fill(
+        image,
+        "FFFFFF",
+        COLORS["background"][image_configuration["colors"]["background"]],
+    )
+
     # Save the image
-    image.save(OUTPUT_PATH / f"IMG {nfts_done}.png")
+    image.save(
+        OUTPUT_PATH / f"IMG {nfts_done}.png",
+        format="PNG",
+        optimize=True,
+        compress_level=9,
+    )
 
     # Create JSON data
     if not SHOULD_JSON_OUTPUT:
@@ -315,3 +343,72 @@ for nfts_done in tqdm(range(MAX_NUMBER_NFTS)):
         # Rarity will be on a scale of 0-10 and will factor in the total number of NFTs and the NFT cost
         rarity = ((nfts_done / MAX_NUMBER_NFTS) * 10 + (nft_cost / 0.01) * 10) / 2
         dump({"nft_id": nfts_done, "cost": nft_cost, "rarity": rarity}, json_file)
+
+# Zip the output folder
+scope = "ZIP_OUTPUT"
+if SHOULD_ZIP_OUTPUT:
+    logger.info("Zipping output...")
+    try:
+        make_archive(OUTPUT_PATH, "zip", OUTPUT_PATH)
+    except Exception as e:
+        logger.error(f"Failed to zip output: {e}")
+        logger.error("Continuing without zipping...")
+
+end_time = time()
+scope = "GENERAL"
+logger.info("Done!")
+
+# Done! Print some statistics
+scope = "GATHER_STATISTICS"
+
+logger.info("Would you like to gather some statistics?")
+if input('Press enter to continue, or type "exit" to exit...') != "":
+    cannot_continue()
+logger.info("Gathering statistics, this may take a while...")
+
+statistics_to_log = []
+
+# Number of NFTs
+statistics_to_log.append(f"There were {MAX_NUMBER_NFTS} unique NFTs created")
+
+# Time taken
+statistics_to_log.append(
+    f'It took {strftime("%H:%M:%S", gmtime(end_time - start_time))} to create the NFTs'
+)
+
+# Rarest NFTs
+if SHOULD_JSON_OUTPUT:
+    with tqdm(
+        # The progress bar shouldn't show when not in debug mode
+        total=MAX_NUMBER_NFTS,
+        file=open(devnull, "w") if not DEBUG else sys.stdout,
+    ) as progress_bar:
+        logger.debug("Gathering rarest NFTs...")
+        statistics_to_log.append("The top-ten rarest NFTs are:")
+        nft_rarities = {}
+        for nfts_done in range(MAX_NUMBER_NFTS):
+            progress_bar.update(1)
+            with open(
+                OUTPUT_PATH / f"JSON_NFT_DATA {nfts_done}.json", "r"
+            ) as json_file:
+                nft_data = load(json_file)
+            nft_rarities[nft_data["rarity"]] = {
+                "nft_id": nft_data["nft_id"],
+                "nft_cost": nft_data["cost"],
+            }
+
+        nft_rarities_list = list(nft_rarities)
+        nft_rarities_list.sort(reverse=True)
+
+        for nft_rarity in nft_rarities_list[:10]:
+            nft_data = nft_rarities[nft_rarity]
+            statistics_to_log.append(
+                f'{nft_data["nft_id"]}: {nft_rarity} ({nft_data["nft_cost"]})'
+            )
+
+for to_log in statistics_to_log:
+    logger.info(to_log)
+
+scope = "GENERAL"
+logger.info("Ready to exit...")
+input()
