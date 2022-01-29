@@ -253,22 +253,23 @@ done_configurations.clear()
 
 start_time = time()
 for nfts_done in tqdm(range(MAX_NUMBER_NFTS)):
-    # Randomize an image configuration
-    image_configuration = {}
-    for image_section in image_sections:
-        image_configuration[image_section] = randint(
-            0, len(image_sections[image_section]["images"]) - 1
-        )
-    image_configuration["colors"] = {
-        "face": randint(0, len(COLORS["head_area"]) - 1),
-        "primary_wool": randint(0, len(COLORS["wool"]) - 1),
-        "secondary_wool": randint(0, len(COLORS["wool"]) - 1),
-        "background": randint(0, len(COLORS["background"]) - 1),
-    }
-    # Has this image configuration already been done?
-    if image_configuration in done_configurations:
-        continue  # Do it again!
-    done_configurations.append(image_configuration)
+    while True:
+        # Randomize an image configuration
+        image_configuration = {}
+        for image_section in image_sections:
+            image_configuration[image_section] = randint(
+                0, len(image_sections[image_section]["images"]) - 1
+            )
+        image_configuration["colors"] = {
+            "face": randint(0, len(COLORS["head_area"]) - 1),
+            "primary_wool": randint(0, len(COLORS["wool"]) - 1),
+            "secondary_wool": randint(0, len(COLORS["wool"]) - 1),
+            "background": randint(0, len(COLORS["background"]) - 1),
+        }
+        # Has this image configuration already been done?
+        if image_configuration not in done_configurations:
+            done_configurations.append(image_configuration)
+            break
 
     # Create a new image
     image = Image.new(mode="RGBA", size=(164, 96), color=(255, 255, 255))
