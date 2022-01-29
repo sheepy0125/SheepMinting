@@ -140,6 +140,8 @@ with open(CONFIG_PATH) as config_file:
 
         try:
             OUTPUT_PATH.mkdir(parents=True)
+            Path(OUTPUT_PATH / "upload").mkdir(parents=False)
+            Path(OUTPUT_PATH / "private").mkdir(parents=False)
         except OSError as e:
             logger.error(
                 f"Could not create output directory: {OUTPUT_PATH}."
@@ -325,7 +327,7 @@ for nfts_done in tqdm(range(MAX_NUMBER_NFTS)):
 
     # Save the image
     image.save(
-        OUTPUT_PATH / f"IMG {nfts_done}.png",
+        OUTPUT_PATH / "upload" / f"IMG {nfts_done}.png",
         format="PNG",
         optimize=True,
         compress_level=9,
@@ -335,14 +337,32 @@ for nfts_done in tqdm(range(MAX_NUMBER_NFTS)):
     if not SHOULD_JSON_OUTPUT:
         continue
 
-    with open(OUTPUT_PATH / f"JSON_IMG_DATA {nfts_done}.json", "w") as json_file:
+    with open(
+        OUTPUT_PATH / "private" / f"JSON_IMG_DATA {nfts_done}.json", "w"
+    ) as json_file:
         dump(image_configuration, json_file)
 
-    with open(OUTPUT_PATH / f"JSON_NFT_DATA {nfts_done}.json", "w") as json_file:
-        nft_cost = randint(1, 100) / 10000
+    with open(
+        OUTPUT_PATH / "upload" / f"JSON_NFT_DATA {nfts_done}.json", "w"
+    ) as json_file:
+        cost = randint(1, 100) / 10000
         # Rarity will be on a scale of 0-10 and will factor in the total number of NFTs and the NFT cost
-        rarity = ((nfts_done / MAX_NUMBER_NFTS) * 10 + (nft_cost / 0.01) * 10) / 2
-        dump({"nft_id": nfts_done, "cost": nft_cost, "rarity": rarity}, json_file)
+        rarity = ((nfts_done / MAX_NUMBER_NFTS) * 10 + (cost / 0.01) * 10) / 2
+        dump(
+            {
+                "name": f"sheep-nft-{nfts_done}",
+                "description": f"An image of sheep number {nfts_done}",
+                # For more info on `image`, see
+                # https://docs.pinata.cloud/nfts#how-to-associate-metadata-with-your-nft
+                "image": "ipfs://YOUR_METADATA_CID",
+                "attributes": {
+                    "id": nfts_done,
+                    "cost": cost,
+                    "rarity": rarity,
+                },
+            },
+            json_file,
+        )
 
 # Zip the output folder
 scope = "ZIP_OUTPUT"
@@ -389,12 +409,12 @@ if SHOULD_JSON_OUTPUT:
         for nfts_done in range(MAX_NUMBER_NFTS):
             progress_bar.update(1)
             with open(
-                OUTPUT_PATH / f"JSON_NFT_DATA {nfts_done}.json", "r"
+                OUTPUT_PATH / "upload" / f"JSON_NFT_DATA {nfts_done}.json", "r"
             ) as json_file:
                 nft_data = load(json_file)
-            nft_rarities[nft_data["rarity"]] = {
-                "nft_id": nft_data["nft_id"],
-                "nft_cost": nft_data["cost"],
+            nft_rarities[nft_data["attributes"]["rarity"]] = {
+                "id": nft_data["attributes"]["id"],
+                "cost": nft_data["attributes"]["cost"],
             }
 
         nft_rarities_list = list(nft_rarities)
@@ -403,7 +423,7 @@ if SHOULD_JSON_OUTPUT:
         for nft_rarity in nft_rarities_list[:10]:
             nft_data = nft_rarities[nft_rarity]
             statistics_to_log.append(
-                f'{nft_data["nft_id"]}: {nft_rarity} ({nft_data["nft_cost"]})'
+                f'{nft_data["id"]}: {nft_rarity} ({nft_data["cost"]})'
             )
 
 for to_log in statistics_to_log:

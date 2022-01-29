@@ -1,7 +1,7 @@
 // Sheepy NFT Minting: Configuration
 {
 	// Doesn't have to exist, must be a realpath / exact path
-	"outputDirectory": "/run/media/sheepy/Storage/Code/Web3/SheepMinting/minting/sheep_images/output-test",
+	"outputDirectory": "/run/media/sheepy/Storage/Code/Web3/SheepMinting/minting/sheep_images/output",
 	// Should the output images be zipped?
 	"shouldZipOutput": true,
 	// Should each image have JSON data with it?
