@@ -1,0 +1,42 @@
+// Sheepy NFT Minting: Configuration
+{
+	// Doesn't have to exist, must be a realpath / exact path
+	"outputDirectory": "/run/media/sheepy/Storage/Code/Web3/SheepMinting/minting/sheep_images/output",
+	// Should the output images be zipped?
+	"shouldZipOutput": false,
+	// Should each image have JSON data with it?
+	"shouldJsonOutput": true,
+	// The number of NFTs to mint
+	"numberNftsToMint": 100,
+
+	// Colors for sections (hex)
+	"colors": {
+		"head_area": ["FCFCFC"], // <-- Right now, the "color key" for head face is off-white. This is here for future use.
+
+		// Wool colors will be the same random color pallette, no matter where they are
+		// https://html-color-codes.com/
+		"wool": [
+			"FCFCFC",
+			"CCCCCC",
+			"999999",
+			"666666",
+			"333333",
+			"000000",
+			"FFCCCC",
+			"FF9999",
+			"FF6666",
+			"FF3333",
+			"FF0000",
+			"CC9999",
+			"CC6666",
+			"CC3333",
+			"CC0000",
+			"996666",
+			"993333",
+			"990000",
+			"663333",
+			"660000",
+			"330000"
+		]
+	}
+}
