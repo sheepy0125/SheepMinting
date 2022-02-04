@@ -6,8 +6,8 @@ export default function Install(props) {
 	const [metaMaskStatus, setMetaMaskStatus] = useState("");
 
 	return (
-		<Box>
-			<div className="p-8 space-y-2 text-gray-800 dark:text-gray-300">
+		<div className="flex justify-center gap-8 p-4 pb-0 md:flex-wrap h-max">
+			<Box className="p-8 space-y-2 text-gray-800 dark:text-gray-300" width={96}>
 				<div className="md:flex md:gap-4">
 					<div>
 						<p className="text-lg font-bold text-black dark:text-white">You don't have MetaMask installed.</p>
@@ -41,7 +41,7 @@ export default function Install(props) {
 				<p className="text-sm">
 					Make sure that this website is allowed to see the <code>window.ethereum</code> object.
 				</p>
-			</div>
-		</Box>
+			</Box>
+		</div>
 	);
 }

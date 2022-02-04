@@ -1,7 +1,5 @@
-export default function Box(props) {
+export default function Box({width, className, children}) {
 	return (
-		<div className={`overflow-hidden rounded-lg shadow-2xl bg-slate-200 dark:bg-gray-900 w-${props.width || "96"} ${props.className}`}>
-			{props.children}
-		</div>
+		<div className={`block overflow-hidden rounded-lg shadow-2xl bg-slate-200 dark:bg-gray-900 max-w-${width || "96"} ${className}`}>{children}</div>
 	);
 }

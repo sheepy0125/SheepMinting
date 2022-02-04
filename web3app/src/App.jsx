@@ -32,25 +32,17 @@ export default function App() {
 	}
 
 	return (
-		<footer className="absolute w-full h-full min-h-screen bg-gradient-to-r from-amber-500 to-amber-600 hover:to-yellow-500">
-			<div>
-				{loading ? (
-					<Loading />
-				) : (
-					<div className="flex justify-center gap-8 p-4 pb-0 flex- md:flex-wrap h-max">
-						<>{!hasMetaMask ? <Install onInstall={checkMetaMaskInstalled} /> : <Home />}</>
-					</div>
-				)}
-				<button
-					onClick={toggleColorScheme}
-					className={`
+		<main>
+			{loading ? <Loading /> : <>{!hasMetaMask ? <Install onInstall={checkMetaMaskInstalled} /> : <Home />}</>}
+			<button
+				onClick={toggleColorScheme}
+				className={`
 							block p-2 mx-auto my-2 bg-indigo-400 rounded-md w-max md:absolute hover:bg-indigo-300 drop-shadow-xl
 							md:right-2 md:top-2 text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-400
 						`}
-				>
-					Toggle {localStorage.theme === "dark" ? "light" : "dark"} mode
-				</button>
-			</div>
-		</footer>
+			>
+				Toggle {localStorage.theme === "dark" ? "light" : "dark"} mode
+			</button>
+		</main>
 	);
 }
